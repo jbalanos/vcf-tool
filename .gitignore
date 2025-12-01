@@ -3,6 +3,24 @@ build/
 *.o
 *.out
 *.exe
+*.a
+*.so
+*.dylib
+*.dll
+*.lib
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+*.cmake
+
+# vcpkg artifacts (do NOT commit installed packages)
+vcpkg_installed/
+.vcpkg/
+vcpkg-manifest-install.log
 
 # IDE files
 .vscode/
@@ -10,7 +28,14 @@ build/
 *.swp
 *.swo
 *~
+.vs/
+*.user
+*.suo
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Test outputs
+Testing/
+*.log
