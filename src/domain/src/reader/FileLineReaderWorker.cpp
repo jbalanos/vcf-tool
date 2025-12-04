@@ -1,0 +1,74 @@
+// FileLineReaderWorker.cpp
+#include "FileLineReaderWorker.h"
+
+#include <fstream>
+#include <iostream>  // or your Logger
+
+
+namespace vcf_tool::domain::reader {
+
+FileLineReaderWorker::FileLineReaderWorker(std::string file_path,
+                                           LineQueue& output_queue,
+                                           bool emit_sentinel)
+    : file_path_(std::move(file_path))
+    , output_queue_(output_queue)
+    , emit_sentinel_(emit_sentinel)
+    , thread_([this](std::stop_token st) {
+        run(st);
+      })
+{
+    // Thread starts immediately in constructor
+}
+
+FileLineReaderWorker::~FileLineReaderWorker()
+{
+    // std::jthread destructor automatically:
+    //  - calls request_stop()
+    //  - joins the thread
+    //
+    // So we don't need extra logic here.
+}
+
+void FileLineReaderWorker::request_stop()
+{
+    thread_.request_stop();
+}
+
+void FileLineReaderWorker::run(std::stop_token st)
+{
+    std::ifstream in(file_path_);
+    if (!in.is_open()) {
+        std::cerr << "FileLineReaderWorker: failed to open file: "
+                  << file_path_ << "\n";
+
+        if (emit_sentinel_) {
+            // Even on failure, we may want to signal "no more lines"
+            output_queue_.enqueue(RawLine{.line_number = 0, .text = {}, .is_end = true});
+        }
+        return;
+    }
+
+    std::string line;
+    std::uint64_t line_number = 0;
+
+    while (!st.stop_requested() && std::getline(in, line)) {
+        ++line_number;
+
+        RawLine raw{
+            .line_number = line_number,
+            .text        = line,
+            .is_end      = false
+        };
+
+        // This will block if queue is full (bounded queue)
+        output_queue_.enqueue(std::move(raw));
+    }
+
+    // Optional: if stop was requested while reading,
+    // we may or may not want to emit sentinel.
+    if (emit_sentinel_) {
+        output_queue_.enqueue(RawLine{.line_number = 0, .text = {}, .is_end = true});
+    }
+}
+
+} // namespace vcf_tool::domain::reader

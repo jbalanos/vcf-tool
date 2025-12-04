@@ -11,7 +11,7 @@ include(StandardProjectSettings)
 include(CompilerWarnings)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -24,9 +24,10 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_DOCS "Build documentation" OFF)
 
 # Add subdirectories for libraries
+# Order matters: utils → core → domain
+add_subdirectory(src/utils)
 add_subdirectory(src/core)
 add_subdirectory(src/domain)
-add_subdirectory(src/utils)
 
 # Add applications
 add_subdirectory(apps/vcf_tool)

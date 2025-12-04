@@ -1,3 +1,6 @@
+# Find CLI11 for command-line parsing
+find_package(CLI11 CONFIG REQUIRED)
+
 add_executable(vcf_tool main.cpp)
 
 target_link_libraries(vcf_tool
@@ -6,6 +9,7 @@ target_link_libraries(vcf_tool
         vcf_tool_domain
         vcf_tool_utils
         project_warnings
+        CLI11::CLI11
 )
 
-target_compile_features(vcf_tool PRIVATE cxx_std_17)
+# C++ standard inherited from root CMakeLists.txt
