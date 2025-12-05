@@ -1,0 +1,27 @@
+##fileformat=VCFv4.2
+##fileDate=20250104
+##source=test_vcf_generator
+##reference=hg38
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE1
+chr1	100	rs001	A	G	30	PASS	DP=50;AF=0.25	GT	0/1
+chr1	200	rs002	C	T	40	PASS	DP=60;AF=0.30	GT	0/1
+chr1	300	rs003	G	A	50	PASS	DP=70;AF=0.35	GT	1/1
+chr1	400	rs004	T	C	35	PASS	DP=55;AF=0.28	GT	0/1
+chr1	500	rs005	A	T	45	PASS	DP=65;AF=0.32	GT	0/1
+chr2	100	rs006	C	G	38	PASS	DP=58;AF=0.29	GT	0/1
+chr2	200	rs007	G	T	42	PASS	DP=62;AF=0.31	GT	0/1
+chr2	300	rs008	T	A	48	PASS	DP=68;AF=0.34	GT	1/1
+chr2	400	rs009	A	C	33	PASS	DP=53;AF=0.27	GT	0/1
+chr2	500	rs010	C	A	47	PASS	DP=67;AF=0.33	GT	0/1
+chr1	600	rs011	G	C	36	PASS	DP=56;AF=0.285	GT	0/1
+chr1	700	rs012	T	G	44	PASS	DP=64;AF=0.315	GT	0/1
+chr1	800	rs013	A	G	52	PASS	DP=72;AF=0.36	GT	1/1
+chr1	900	rs014	C	T	37	PASS	DP=57;AF=0.29	GT	0/1
+chr1	1000	rs015	G	A	46	PASS	DP=66;AF=0.325	GT	0/1
+chr2	500	rs010	C	A	47	PASS	DP=67;AF=0.33	GT	0/1
+chr1	600	rs011	G	C	36	PASS	DP=56;AF=0.285	GT	0/1

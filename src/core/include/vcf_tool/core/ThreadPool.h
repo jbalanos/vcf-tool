@@ -10,6 +10,7 @@
 #include <stop_token>
 #include <type_traits>
 #include <stdexcept>
+#include <memory>
 
 
 namespace vcf_tool::core {
@@ -78,10 +79,16 @@ auto ThreadPool::submit(F&& f, Args&&... args)
             throw std::runtime_error("submit on stopped ThreadPool");
         }
 
-        // Wrap packaged_task into a void() function
+        // Wrap packaged_task in shared_ptr to make it copy-constructible
+        // (packaged_task is move-only, but shared_ptr is copy-constructible)
+        auto task_ptr = std::make_shared<std::packaged_task<R()>>(
+            std::move(bound_task)
+        );
+
+        // Wrap in void() function that std::function can store
         tasks_.emplace_back(
-            [task = std::move(bound_task)]() mutable {
-                task();
+            [task = task_ptr]() {
+                (*task)();
             }
         );
 

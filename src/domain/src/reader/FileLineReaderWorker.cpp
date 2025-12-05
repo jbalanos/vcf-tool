@@ -9,10 +9,12 @@ namespace vcf_tool::domain::reader {
 
 FileLineReaderWorker::FileLineReaderWorker(std::string file_path,
                                            LineQueue& output_queue,
-                                           bool emit_sentinel)
+                                           bool emit_sentinel,
+                                           std::size_t sentinel_count)
     : file_path_(std::move(file_path))
     , output_queue_(output_queue)
     , emit_sentinel_(emit_sentinel)
+    , sentinel_count_(sentinel_count)
     , thread_([this](std::stop_token st) {
         run(st);
       })
@@ -42,8 +44,10 @@ void FileLineReaderWorker::run(std::stop_token st)
                   << file_path_ << "\n";
 
         if (emit_sentinel_) {
-            // Even on failure, we may want to signal "no more lines"
-            output_queue_.enqueue(RawLine{.line_number = 0, .text = {}, .is_end = true});
+            // Even on failure, emit N sentinels to prevent downstream parser deadlock
+            for (std::size_t i = 0; i < sentinel_count_; ++i) {
+                output_queue_.enqueue(RawLine{.line_number = 0, .text = {}, .is_end = true});
+            }
         }
         return;
     }
@@ -64,10 +68,12 @@ void FileLineReaderWorker::run(std::stop_token st)
         output_queue_.enqueue(std::move(raw));
     }
 
-    // Optional: if stop was requested while reading,
-    // we may or may not want to emit sentinel.
+    // Emit N sentinels (one per downstream parser) to signal end-of-stream
+    // This ensures all N parsers receive a termination signal
     if (emit_sentinel_) {
-        output_queue_.enqueue(RawLine{.line_number = 0, .text = {}, .is_end = true});
+        for (std::size_t i = 0; i < sentinel_count_; ++i) {
+            output_queue_.enqueue(RawLine{.line_number = 0, .text = {}, .is_end = true});
+        }
     }
 }
 

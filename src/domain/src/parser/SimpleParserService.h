@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Queues.h"
-#include "NaiveLineParser.h"
 
 
 namespace vcf_tool::domain::parser {
@@ -15,11 +14,14 @@ using domain::RecordQueue;
  * Continuously dequeues raw lines from input queue, parses them,
  * and enqueues parsed records to output queue. Handles end-of-stream
  * sentinels for proper pipeline termination.
+ *
+ * @tparam Parser Type of parser to use (must implement operator()(const RawLine&))
  */
+template<typename Parser>
 struct SimpleParserService {
-    LineQueue&      input_queue;
-    RecordQueue&    output_queue;
-    NaiveLineParser parser;  // Injected parser (strategy pattern)
+    LineQueue&  input_queue;
+    RecordQueue& output_queue;
+    Parser      parser;  // Injected parser (strategy pattern)
 
     /**
      * @brief Main processing loop - designed to run in a thread

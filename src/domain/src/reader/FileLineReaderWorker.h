@@ -19,10 +19,12 @@ public:
      * @param file_path       Path to the file to read.
      * @param output_queue    Queue where lines will be pushed.
      * @param emit_sentinel   Whether to push a RawLine{.is_end = true} when done.
+     * @param sentinel_count  Number of sentinel values to emit (one per downstream parser).
      */
     FileLineReaderWorker(std::string file_path,
                          LineQueue& output_queue,
-                         bool emit_sentinel = true);
+                         bool emit_sentinel = true,
+                         std::size_t sentinel_count = 1);
 
     // Non-copyable, non-movable
     FileLineReaderWorker(const FileLineReaderWorker&) = delete;
@@ -40,6 +42,7 @@ private:
     std::string  file_path_;
     LineQueue&   output_queue_;
     bool         emit_sentinel_;
+    std::size_t  sentinel_count_;
 
     std::jthread thread_;
 };

@@ -21,8 +21,8 @@ target_include_directories(vcf_tool_utils
 target_link_libraries(vcf_tool_utils
     PUBLIC
         project_warnings
+        fmt::fmt  # PUBLIC because Errors.h uses it in public header
     PRIVATE
-        fmt::fmt
         spdlog::spdlog
         nlohmann_json::nlohmann_json
 )

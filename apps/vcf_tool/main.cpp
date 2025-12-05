@@ -7,6 +7,11 @@
 
 #include <CLI/CLI.hpp>
 #include <vcf_tool/utils/Logger.h>
+#include <vcf_tool/utils/Errors.h>
+#include <vcf_tool/core/MongoDatabase.h>
+#include <vcf_tool/core/MongoConfig.h>
+#include <vcf_tool/domain/VcfTool.h>
+#include <vcf_tool/domain/VcfToolBuilder.h>
 
 namespace fs = std::filesystem;
 using vcf_tool::utils::Logger;
@@ -29,27 +34,32 @@ Logger::Level parse_log_level(const std::string& level_str) {
     return Logger::Level::Info;
 }
 
-// Placeholder for your actual import/processing pipeline
+// VCF import using the new VcfTool API
 int run_vcf_import(const std::string& vcf_path, int num_threads) {
     LOG_INFO_F("Running VCF import for file '{}' using {} threads", vcf_path, num_threads);
 
-    // Example: validate that file exists
-    if (!fs::exists(vcf_path)) {
-        LOG_ERROR_F("VCF file does not exist: '{}'", vcf_path);
+    try {
+        // Build VcfTool with user-specified thread count
+        auto tool = vcf_tool::domain::api::VcfToolBuilder()
+            .with_parser_threads(static_cast<std::size_t>(num_threads))
+            .with_batch_size(2)
+            .build();
+
+        // Run the import pipeline
+        tool.run(vcf_path);
+
+        LOG_INFO("VCF import completed successfully");
+        return 0;
+
+    } catch (const vcf_tool::utils::errors::BaseError& e) {
+        // Custom error with proper exit code mapping
+        vcf_tool::utils::errors::log_error(e);
+        return vcf_tool::utils::errors::to_exit_code(e);
+    } catch (const std::exception& e) {
+        // Generic exception (shouldn't happen with proper error handling)
+        LOG_ERROR_F("Unexpected error: {}", e.what());
         return 1;
     }
-
-    // TODO: here you would:
-    //  - create thread pool
-    //  - start reader worker(s)
-    //  - start parser worker(s)
-    //  - push results to DB / output queue
-
-    LOG_DEBUG_F("Simulating processing of file '{}'", vcf_path);
-    // ... your real logic goes here ...
-
-    LOG_INFO("VCF import completed successfully");
-    return 0;
 }
 
 int main(int argc, char** argv) {
@@ -126,6 +136,20 @@ int main(int argc, char** argv) {
         LOG_INFO_F("Logging to file: '{}'", log_file_path);
     } else {
         LOG_INFO("Logging to console only");
+    }
+
+    // Initialize MongoDB connection from environment variables
+    try {
+        auto mongo_config = vcf_tool::core::MongoConfig::from_environment();
+        vcf_tool::core::MongoDatabase::initialize(mongo_config);
+        LOG_INFO("MongoDB initialized successfully");
+    } catch (const vcf_tool::utils::errors::ValidationError& e) {
+        LOG_ERROR_F("MongoDB configuration error: {}", e.what());
+        LOG_ERROR("Please set MONGODB_URI and MONGODB_DB_NAME environment variables");
+        return vcf_tool::utils::errors::to_exit_code(e);
+    } catch (const vcf_tool::utils::errors::DatabaseError& e) {
+        LOG_ERROR_F("MongoDB connection error: {}", e.what());
+        return vcf_tool::utils::errors::to_exit_code(e);
     }
 
     int rc = run_vcf_import(vcf_path, threads);

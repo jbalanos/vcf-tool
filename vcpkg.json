@@ -8,6 +8,7 @@
     "cli11",
     "nlohmann-json",
     "catch2",
-    "concurrentqueue"
+    "concurrentqueue",
+    "mongo-cxx-driver"
   ]
 }
